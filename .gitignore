@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+/managed_components
+/dgame/managed_components
