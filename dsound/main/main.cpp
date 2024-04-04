@@ -1,86 +1,33 @@
 #include "main.h"
 #include "es8388.h"
-#include "sd_card.h"
+//#include "sd_card.h"
 
 static lpcstr TAG = "MAIN";
 
 #define SAMPLE_RATE     11025
-// in samples, received data is mono
-#define I2S_BUF_SIZE    ( ( SAMPLE_RATE / 100 ) * 2 )
-#define MIX_BUF_SIZE    (I2S_BUF_SIZE * 2)
-#define TX_SAMPLE_RATE  11050
 
-static QueueHandle_t      hQue = nullptr; // comminication queue
+// master MCU sends every time the following number of samples:
+#define I2S_BUF_SIZE          ( ( SAMPLE_RATE / 100 ) * 2 * 2 )
+// we are going to read every time only half of them
+#define I2S_HALPH_BUF_SIZE    ( ( SAMPLE_RATE / 100 ) * 2 )
+
 static i2s_chan_handle_t  rx_chan;        // I2S rx channel handler
 static i2s_chan_handle_t  tx_chan;        // I2S tx channel handler
-static int16_t            r_buf[I2S_BUF_SIZE];
-static int16_t            mixBuf1[MIX_BUF_SIZE]; // 2 channels 16 bit PCM
-static int16_t            mixBuf2[MIX_BUF_SIZE]; // 2 channels 16 bit PCM
-static int16_t*           buffers[] = { mixBuf1, mixBuf2 };
+static int16_t            mixBuf[I2S_HALPH_BUF_SIZE]; // 2 channels 16 bit PCM
 
-static int16_t* get_mix_buffer() 
+static void i2s_task( void *args )
 {
-    static int  bufIdx = 0;
-
-    int16_t* p = buffers[bufIdx];
-    if( ++bufIdx == 2 ) {
-        bufIdx = 0;
-    }
-    return p;
-}
-
-static void make_stereo( int16_t* pMixBuf )
-{
-    int count       = I2S_BUF_SIZE;
-    int16_t* pIn    = r_buf;
-
-    while( count-- )
-    {
-        *pMixBuf++ = *pIn;
-        *pMixBuf++ = *pIn;
-        pIn++;
-    }
-}
-
-static void i2s_read_task( void *args )
-{
-    size_t readBytes = 0;
-
     ESP_ERROR_CHECK( i2s_channel_enable( rx_chan ) );
-
-    while( true )
-    {
-        if( i2s_channel_read( rx_chan, r_buf, I2S_BUF_SIZE * sizeof(int16_t), &readBytes, 1000 ) == ESP_OK )
-        {
-            //ESP_LOGI( TAG, "PCM readTask: %d bytes\n", readBytes );
-
-            int16_t* pMixBuf = get_mix_buffer();            
-            make_stereo( pMixBuf );
-
-            xQueueSendToBack( hQue, &pMixBuf, 0 );
-        }
-    }
-
-    vTaskDelete( NULL );
-}
-
-static void i2s_write_task( void *args )
-{
-    //size_t writeBytes = 0;
-
     ESP_ERROR_CHECK( i2s_channel_enable( tx_chan ) );
 
     while( true )
     {
-        //ESP_LOGI( TAG, "PCM readTask: %d bytes\n", readBytes );
-        int16_t* pMixBuf;
-        if( xQueueReceive( hQue, &pMixBuf, ms2ticks( 1000 ) ) )
+        if( i2s_channel_read( rx_chan, mixBuf, I2S_HALPH_BUF_SIZE * sizeof(int16_t), nullptr, portMAX_DELAY ) == ESP_OK )
         {
-            i2s_channel_write( tx_chan, pMixBuf, MIX_BUF_SIZE * sizeof(int16_t), nullptr, 100 );
+            //ESP_LOGI( TAG, "PCM readTask: %d bytes\n", readBytes );
+            i2s_channel_write( tx_chan, mixBuf, I2S_HALPH_BUF_SIZE * sizeof(int16_t), nullptr, portMAX_DELAY );
         }
     }
-
-    vTaskDelete( NULL );
 }
 
 static void i2s_init_std_simplex(void)
@@ -113,8 +60,8 @@ static void i2s_init_std_simplex(void)
     ESP_ERROR_CHECK( i2s_new_channel( &rx_chan_cfg, NULL, &rx_chan ) );
 
     i2s_std_config_t rx_std_cfg = {
-        .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG( TX_SAMPLE_RATE ),
-        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG( I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO ),
+        .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG( SAMPLE_RATE ),
+        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG( I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO ),
         .gpio_cfg = {
             .mclk = I2S_SCLK_PIN,    // some codecs may require mclk signal, this example doesn't need it
             .bclk = I2S_BCLK_PIN,
@@ -181,7 +128,7 @@ static bool init_codec()
         return false;
     }
 
-    //es8388_pa_power( true ); // activate 21 pin, this will enable output to build-in power amp
+    es8388_pa_power( true ); // activate 21 pin, this will enable output to build-in power amp
 
     ESP_LOGI( TAG, "ES8388 codec init ok" );
     return true;
@@ -193,10 +140,10 @@ void app_main(void)
 {
     vTaskDelay( ms2ticks(5) ); // wait for normal pins state
  
-    SDCardReader sdCard;
-    sdCard.init( false );
-    return;
-    /*
+    // To slow on this board to be usefull...
+    //SDCardReader sdCard;
+    //sdCard.init( false );
+    
     if( !init_codec() )
     {
         return;
@@ -204,11 +151,7 @@ void app_main(void)
 
     i2s_init_std_simplex();
 
-    hQue = xQueueCreate( 10, sizeof(int16_t*) );
-
-    xTaskCreatePinnedToCore( i2s_read_task,  "i2s_read_task", 4096, NULL, 5, NULL, 0 );
-    xTaskCreatePinnedToCore( i2s_write_task, "i2s_write_task", 4096, NULL, 5, NULL, 1 );
-    */
+    xTaskCreatePinnedToCore( i2s_task,  "i2s_task", 4096, NULL, 10, NULL, 0 );
 }
 
 }

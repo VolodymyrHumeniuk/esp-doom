@@ -39,6 +39,7 @@ static const char rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include "mem_alloc.h"
 
 //#define CMAP256
 
@@ -64,7 +65,7 @@ struct FB_ScreenInfo
     struct FB_BitField transp;  /* transparency         */
 };
 
-static struct FB_ScreenInfo s_Fb;
+static struct FB_ScreenInfo* pS_Fb; // dinamically allocated
 int fb_scaling = 1;
 int usemouse = 0;
 
@@ -115,7 +116,7 @@ typedef struct
 
 // Palette converted to RGB565
 
-static uint16_t rgb565_palette[256];
+static uint16_t* rgb565_palette = NULL; // dinamically allocated
 
 void cmap_to_rgb565( uint16_t* out, uint8_t* in, int in_pixels )
 {
@@ -147,16 +148,16 @@ void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
     for( int i = 0; i < in_pixels; i++ )
     {
         c = colors[*in];  /* R:8 G:8 B:8 format! */
-        r = (uint16_t)(c.r >> (8 - s_Fb.red.length));
-        g = (uint16_t)(c.g >> (8 - s_Fb.green.length));
-        b = (uint16_t)(c.b >> (8 - s_Fb.blue.length));
-        pix = r << s_Fb.red.offset;
-        pix |= g << s_Fb.green.offset;
-        pix |= b << s_Fb.blue.offset;
+        r = (uint16_t)(c.r >> (8 - pS_Fb->red.length));
+        g = (uint16_t)(c.g >> (8 - pS_Fb->green.length));
+        b = (uint16_t)(c.b >> (8 - pS_Fb->blue.length));
+        pix = r << pS_Fb->red.offset;
+        pix |= g << pS_Fb->green.offset;
+        pix |= b << pS_Fb->blue.offset;
 
         for( int k = 0; k < fb_scaling; k++)
         {
-            for ( uint32_t j = 0; j < s_Fb.bits_per_pixel/8; j++)
+            for ( uint32_t j = 0; j < pS_Fb->bits_per_pixel/8; j++)
             {
                 *out = (pix >> (j*8));
                 out++;
@@ -170,29 +171,34 @@ void I_InitGraphics(void)
 {
     int i;
 
-    memset( &s_Fb, 0, sizeof(struct FB_ScreenInfo) );
-    s_Fb.xres = DOOMGENERIC_RESX;
-    s_Fb.yres = DOOMGENERIC_RESY;
-    s_Fb.xres_virtual = s_Fb.xres;
-    s_Fb.yres_virtual = s_Fb.yres;
-    s_Fb.bits_per_pixel = 16; // for LCD, was 32
+    pS_Fb = mem_alloc( sizeof(struct FB_ScreenInfo) );
 
-    s_Fb.blue.length = 8;
-    s_Fb.green.length = 8;
-    s_Fb.red.length = 8;
-    s_Fb.transp.length = 8;
+    memset( pS_Fb, 0, sizeof(struct FB_ScreenInfo) );
 
-    s_Fb.blue.offset = 0;
-    s_Fb.green.offset = 8;
-    s_Fb.red.offset = 16;
-    s_Fb.transp.offset = 24;
+    rgb565_palette = mem_alloc( 256 * sizeof(int16_t) );
+
+    pS_Fb->xres = DOOMGENERIC_RESX;
+    pS_Fb->yres = DOOMGENERIC_RESY;
+    pS_Fb->xres_virtual = pS_Fb->xres;
+    pS_Fb->yres_virtual = pS_Fb->yres;
+    pS_Fb->bits_per_pixel = 16; // for LCD, was 32
+
+    pS_Fb->blue.length = 8;
+    pS_Fb->green.length = 8;
+    pS_Fb->red.length = 8;
+    pS_Fb->transp.length = 8;
+
+    pS_Fb->blue.offset = 0;
+    pS_Fb->green.offset = 8;
+    pS_Fb->red.offset = 16;
+    pS_Fb->transp.offset = 24;
     
 
     printf("I_InitGraphics: framebuffer: x_res: %d, y_res: %d, x_virtual: %d, y_virtual: %d, bpp: %d\n",
-            s_Fb.xres, s_Fb.yres, s_Fb.xres_virtual, s_Fb.yres_virtual, s_Fb.bits_per_pixel);
+            pS_Fb->xres, pS_Fb->yres, pS_Fb->xres_virtual, pS_Fb->yres_virtual, pS_Fb->bits_per_pixel);
 
     printf("I_InitGraphics: framebuffer: RGBA: %d%d%d%d, red_off: %d, green_off: %d, blue_off: %d, transp_off: %d\n",
-            s_Fb.red.length, s_Fb.green.length, s_Fb.blue.length, s_Fb.transp.length, s_Fb.red.offset, s_Fb.green.offset, s_Fb.blue.offset, s_Fb.transp.offset);
+            pS_Fb->red.length, pS_Fb->green.length, pS_Fb->blue.length, pS_Fb->transp.length, pS_Fb->red.offset, pS_Fb->green.offset, pS_Fb->blue.offset, pS_Fb->transp.offset);
 
     printf("I_InitGraphics: DOOM screen size: w x h: %d x %d\n", SCREENWIDTH, SCREENHEIGHT);
 
@@ -203,9 +209,9 @@ void I_InitGraphics(void)
         fb_scaling = i;
         printf("I_InitGraphics: Scaling factor: %d\n", fb_scaling);
     } else {
-        fb_scaling = s_Fb.xres / SCREENWIDTH;
-        if( s_Fb.yres / SCREENHEIGHT < (uint32_t)fb_scaling )
-            fb_scaling = s_Fb.yres / SCREENHEIGHT;
+        fb_scaling = pS_Fb->xres / SCREENWIDTH;
+        if( pS_Fb->yres / SCREENHEIGHT < (uint32_t)fb_scaling )
+            fb_scaling = pS_Fb->yres / SCREENHEIGHT;
         printf( "I_InitGraphics: Auto-scaling factor: %d\n", fb_scaling );
     }
 
@@ -301,10 +307,10 @@ void I_FinishUpdate(void)
     /* 600  = s_Fb heigt, 200 screenheight */
     /* 600  = s_Fb heigt, 200 screenheight */
     /* 2048 = s_Fb width, 320 screenwidth */
-    y_offset     = (((s_Fb.yres - (SCREENHEIGHT * fb_scaling)) * s_Fb.bits_per_pixel/8)) / 2;
-    x_offset     = (((s_Fb.xres - (SCREENWIDTH  * fb_scaling)) * s_Fb.bits_per_pixel/8)) / 2; // XXX: siglent FB hack: /4 instead of /2, since it seems to handle the resolution in a funny way
+    y_offset     = (((pS_Fb->yres - (SCREENHEIGHT * fb_scaling)) * pS_Fb->bits_per_pixel/8)) / 2;
+    x_offset     = (((pS_Fb->xres - (SCREENWIDTH  * fb_scaling)) * pS_Fb->bits_per_pixel/8)) / 2; // XXX: siglent FB hack: /4 instead of /2, since it seems to handle the resolution in a funny way
     //x_offset     = 0;
-    x_offset_end = ((s_Fb.xres - (SCREENWIDTH  * fb_scaling)) * s_Fb.bits_per_pixel/8) - x_offset;
+    x_offset_end = ((pS_Fb->xres - (SCREENWIDTH  * fb_scaling)) * pS_Fb->bits_per_pixel/8) - x_offset;
 
     /* DRAW SCREEN */
     line_in  = (unsigned char *)I_VideoBuffer;   // original 320x200
@@ -327,7 +333,7 @@ void I_FinishUpdate(void)
             cmap_to_rgb565( (void*)line_out, (void*)line_in, SCREENWIDTH );
             //cmap_to_fb((void*)line_out, (void*)line_in, SCREENWIDTH);
 #endif
-            line_out += (SCREENWIDTH * fb_scaling * (s_Fb.bits_per_pixel/8)) + x_offset_end;
+            line_out += (SCREENWIDTH * fb_scaling * (pS_Fb->bits_per_pixel/8)) + x_offset_end;
         }
 
         line_in += SCREENWIDTH;
@@ -372,14 +378,13 @@ void I_SetPalette( byte* palette )
 }
 
 // Given an RGB value, find the closest matching palette index.
-
-int I_GetPaletteIndex (int r, int g, int b)
+int I_GetPaletteIndex(int r, int g, int b)
 {
     int best, best_diff, diff;
     int i;
     col_t color;
 
-    printf("I_GetPaletteIndex\n");
+    //printf("I_GetPaletteIndex\n");
 
     best = 0;
     best_diff = INT_MAX;

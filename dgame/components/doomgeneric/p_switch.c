@@ -39,7 +39,7 @@
 //
 // CHANGE THE TEXTURE OF A WALL SWITCH TO ITS OPPOSITE
 //
-switchlist_t alphSwitchList[] =
+static const switchlist_t alphSwitchList[] =
 {
     // Doom shareware episode 1 switches
     {"SW1BRCOM",    "SW2BRCOM", 1},

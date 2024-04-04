@@ -24,6 +24,8 @@
 
 #include "d_event.h"
 
+void M_MenuInit(); // for allocating some vars
+
 //
 // MENUS
 //

@@ -29,7 +29,7 @@ static struct
     GameMode_t mode;
     int episode;
     int map;
-} valid_modes[] = {
+} const valid_modes[] = {
     { pack_chex, shareware,  1, 5 },
     { doom,      shareware,  1, 9 },
     { doom,      registered, 3, 9 },

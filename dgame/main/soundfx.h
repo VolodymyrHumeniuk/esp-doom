@@ -51,8 +51,10 @@ public:
 
 #define NUM_SFX_CHANNELS 8
 #define SAMPLE_RATE      11025
-#define MIX_BUF_LEN      ( ( SAMPLE_RATE / 100 ) * 2 )
-#define TX_SAMPLE_RATE   11050
+// input buffer for song sontains mono data
+#define INPUT_BUF_LEN    ( ( SAMPLE_RATE / 100 ) * 2 )
+#define MIX_BUF_LEN      ( ( SAMPLE_RATE / 100 ) * 2 * 2 )
+#define TX_SAMPLE_RATE   11025
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // SoundFX mixer class
@@ -68,8 +70,8 @@ class SoundFXMixer
     SFXChannel          m_channels[NUM_SFX_CHANNELS]; // channels to mix
     uint8_t             m_nextChannel;
 
-    int16_t             m_mixBuffer[MIX_BUF_LEN]; // mix buffer of 16-bit pcm data in stereo
-    int16_t             m_inputBuf[MIX_BUF_LEN]; // read buffer of 16-bit pcm data in mono
+    int16_t             m_mixBuffer[MIX_BUF_LEN];   // mix buffer of 16-bit pcm data in stereo
+    int16_t             m_inputBuf[INPUT_BUF_LEN];  // read buffer of 16-bit pcm data in mono
 
     WaveReader          m_wavReader;
 

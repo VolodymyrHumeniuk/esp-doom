@@ -16,12 +16,14 @@
 //  Random number LUT.
 //
 
+// VH: just tested - changing this to real esp RNG - produces funny results :)
+// I've removed all testing code
+
 //
 // M_Random
 // Returns a 0-255 number
 //
-
-static const unsigned char rndtable[256] = {
+static const unsigned char rndTable[256] = {
     0,   8, 109, 220, 222, 241, 149, 107,  75, 248, 254, 140,  16,  66 ,
     74,  21, 211,  47,  80, 242, 154,  27, 205, 128, 161,  89,  77,  36 ,
     95, 110,  85,  48, 212, 140, 211, 249,  22,  79, 200,  50,  28, 188 ,
@@ -43,23 +45,28 @@ static const unsigned char rndtable[256] = {
     120, 163, 236, 249
 };
 
-int rndindex = 0;
-int prndindex = 0;
+static int rndIndex = 0;
+static int prndIndex = 0;
 
 // Which one is deterministic?
-int P_Random (void)
+int P_Random(void)
 {
-    prndindex = (prndindex+1)&0xff;
-    return rndtable[prndindex];
+    prndIndex = ( prndIndex + 1 ) & 0xff;
+    return rndTable[prndIndex];
 }
 
-int M_Random (void)
+int M_Random(void)
 {
-    rndindex = (rndindex+1)&0xff;
-    return rndtable[rndindex];
+    rndIndex = ( rndIndex + 1 ) & 0xff;
+    return rndTable[rndIndex];
 }
 
-void M_ClearRandom (void)
+void M_ClearRandom(void)
 {
-    rndindex = prndindex = 0;
+    rndIndex = prndIndex = 0;
+}
+
+int M_GetRndIndex(void)
+{
+    return rndIndex;
 }

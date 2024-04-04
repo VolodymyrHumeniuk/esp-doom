@@ -35,7 +35,7 @@ void SoundFXMixer::init()
 
     i2s_std_config_t tx_std_cfg = {
         .clk_cfg  = I2S_STD_CLK_DEFAULT_CONFIG( TX_SAMPLE_RATE ),
-        .slot_cfg = I2S_STD_PCM_SLOT_DEFAULT_CONFIG( I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO ),
+        .slot_cfg = I2S_STD_PCM_SLOT_DEFAULT_CONFIG( I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO ),
         .gpio_cfg = {
             .mclk = I2S_SCLK_PIN,    // SCLK master clock
             .bclk = I2S_BCLK_PIN,    // bit clock comes from mcu
@@ -59,7 +59,7 @@ void SoundFXMixer::init()
 
     m_hSndQue = xQueueCreate( 10, sizeof(int) );
 
-    xTaskCreate( soundfx_task, "soundfx_task", 4096, this, 2, nullptr );
+    xTaskCreate( soundfx_task, "soundfx_task", 4096, this, 3, nullptr );
 
     ESP_LOGI( TAG, "init ok" );
 }
@@ -136,22 +136,28 @@ void SoundFXMixer::play_fx()
 
 void SoundFXMixer::mix() // mix active channels if any
 {
-    memset( m_mixBuffer, 0, sizeof(m_mixBuffer) );
-    int readBytes = m_wavReader.getPcmData( m_mixBuffer, sizeof(m_mixBuffer) );
+    int readBytes = m_wavReader.getPcmData( m_inputBuf, sizeof( m_inputBuf ) );
     if( readBytes <= 0 )
     {
         ESP_LOGI( TAG, "read PCM: %d bytes, rewinding...", readBytes );
         m_wavReader.rewind();
-        readBytes = m_wavReader.getPcmData( m_mixBuffer, sizeof(m_mixBuffer) );
-        if( readBytes <= 0 )
-            return;
-        ESP_LOGI( TAG, "read PCM: %d bytes", readBytes );
+        readBytes = m_wavReader.getPcmData( m_inputBuf, sizeof( m_inputBuf ) );
     }
 
     // mix effects into buffer with music
-    for( int k = 0; k < MIX_BUF_LEN; k++ )
+    for( int k = 0, j = 0; k < MIX_BUF_LEN; k += 2, j++ )
     {
-        int smp = 0; // mix on 32 bit signed int
+        float musSmp = (float)m_inputBuf[j] / 32767.0f;
+
+        musSmp *= 0.25f; // gain correction
+
+        float sL = musSmp - 0.00123f;
+        float sR = musSmp + 0.00123f;
+
+        m_mixBuffer[k  ] = (int16_t)( sL * 32768.0f );
+        m_mixBuffer[k+1] = (int16_t)( sR * 32768.0f );
+
+        /*int smp = 0; // mix on 32 bit signed int
         int div = 0;
         for( int i = 0; i < NUM_SFX_CHANNELS; i++ ) // if no active channels, then silence will be sent to driver
         {
@@ -165,7 +171,7 @@ void SoundFXMixer::mix() // mix active channels if any
         m_mixBuffer[k] /= 4; // gain correction ...
 
         if( div ) {
-            m_mixBuffer[k] += (int16_t)( ( smp << 7 ) / div ); // make sample ~16 bit
-        }
+            m_mixBuffer[k] += (int16_t)( ( smp << 6 ) / div ); // make sample ~16 bit
+        }*/
     }
 }

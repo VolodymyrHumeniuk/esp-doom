@@ -57,7 +57,7 @@
 #include "sounds.h"
 
 #include "m_menu.h"
-
+#include "mem_alloc.h"
 
 extern patch_t*     hu_font[HU_FONTSIZE];
 extern boolean      message_dontfuckwithme;
@@ -87,6 +87,8 @@ int         quickSaveSlot;
 int         messageToPrint;
 // ...and here is the message string!
 char*           messageString;
+// ...yeah, and here is the buffer for it...
+static char*  tempstring = NULL;
 
 // message x & y
 int         messx;
@@ -98,7 +100,7 @@ boolean         messageNeedsInput;
 
 void    (*messageRoutine)(int response);
 
-char gammamsg[5][26] =
+static const char gammamsg[5][26] =
 {
     GAMMALVL0,
     GAMMALVL1,
@@ -168,7 +170,7 @@ short       whichSkull;     // which skull to draw
 char    *skullName[2] = {"M_SKULL1","M_SKULL2"};
 
 // current menudef
-menu_t* currentMenu;                          
+static menu_t* currentMenu;                          
 
 //
 // PROTOTYPES
@@ -223,7 +225,10 @@ void M_StopMessage(void);
 void M_ClearMenus (void);
 
 
-
+void M_MenuInit()
+{
+    tempstring = (char*)mem_alloc( 80 );
+}
 
 //
 // DOOM MENU
@@ -239,7 +244,7 @@ enum
     main_end
 } main_e;
 
-menuitem_t MainMenu[]=
+static menuitem_t MainMenu[]=
 {
     {1,"M_NGAME",M_NewGame,'n'},
     {1,"M_OPTION",M_Options,'o'},
@@ -250,7 +255,7 @@ menuitem_t MainMenu[]=
     {1,"M_QUITG",M_QuitDOOM,'q'}
 };
 
-menu_t  MainDef =
+static menu_t  MainDef =
 {
     main_end,
     NULL,
@@ -495,7 +500,6 @@ menu_t  SaveDef =
     0
 };
 
-
 //
 // M_ReadSaveStrings
 //  read the strings from the savegame files
@@ -522,7 +526,6 @@ void M_ReadSaveStrings(void)
     LoadMenu[i].status = 1;
     }
 }
-
 
 //
 // M_LoadGame & Cie.
@@ -662,13 +665,9 @@ void M_SaveGame (int choice)
     M_ReadSaveStrings();
 }
 
-
-
 //
 //      M_QuickSave
 //
-char    tempstring[80];
-
 void M_QuickSaveResponse(int key)
 {
     if (key == key_menu_confirm)
@@ -812,8 +811,6 @@ void M_DrawReadThis1(void)
     ReadDef1.y = skully;
 }
 
-
-
 //
 // Read This Menus - optional second page.
 //
@@ -826,7 +823,6 @@ void M_DrawReadThis2(void)
 
     V_DrawPatchDirect(0, 0, W_CacheLumpName(DEH_String("HELP1"), PU_CACHE));
 }
-
 
 //
 // Change Sfx & Music volumes
@@ -881,9 +877,6 @@ void M_MusicVol(int choice)
     S_SetMusicVolume(musicVolume * 8);
 }
 
-
-
-
 //
 // M_DrawMainMenu
 //
@@ -892,9 +885,6 @@ void M_DrawMainMenu(void)
     V_DrawPatchDirect(94, 2,
                       W_CacheLumpName(DEH_String("M_DOOM"), PU_CACHE));
 }
-
-
-
 
 //
 // M_NewGame
@@ -1010,7 +1000,6 @@ void M_Options(int choice)
 }
 
 
-
 //
 //      Toggle messages on/off
 //
@@ -1096,13 +1085,10 @@ void M_FinishReadThis(int choice)
     M_SetupNextMenu(&MainDef);
 }
 
-
-
-
 //
 // M_QuitDOOM
 //
-int     quitsounds[8] =
+static const int quitsounds[8] =
 {
     sfx_pldeth,
     sfx_dmpain,
@@ -1114,7 +1100,7 @@ int     quitsounds[8] =
     sfx_sgtatk
 };
 
-int     quitsounds2[8] =
+static const int quitsounds2[8] =
 {
     sfx_vilact,
     sfx_getpow,
@@ -1173,9 +1159,6 @@ void M_QuitDOOM(int choice)
     M_StartMessage(endstring,M_QuitResponse,true);
 }
 
-
-
-
 void M_ChangeSensitivity(int choice)
 {
     switch(choice)
@@ -1191,9 +1174,6 @@ void M_ChangeSensitivity(int choice)
     }
 }
 
-
-
-
 void M_ChangeDetail(int choice)
 {
     choice = 0;
@@ -1206,9 +1186,6 @@ void M_ChangeDetail(int choice)
     else
     players[consoleplayer].message = DEH_String(DETAILLO);
 }
-
-
-
 
 void M_SizeDisplay(int choice)
 {
@@ -1240,8 +1217,7 @@ void M_SizeDisplay(int choice)
 //
 //      Menu Functions
 //
-void
-M_DrawThermo
+void M_DrawThermo
 ( int   x,
   int   y,
   int   thermWidth,
@@ -1280,16 +1256,11 @@ M_DrawSelCell
 ( menu_t*   menu,
   int       item )
 {
-    V_DrawPatchDirect(menu->x - 10, menu->y + item * LINEHEIGHT - 1,
-                      W_CacheLumpName(DEH_String("M_CELL2"), PU_CACHE));
+    V_DrawPatchDirect(menu->x - 10, menu->y + item * LINEHEIGHT - 1, W_CacheLumpName(DEH_String("M_CELL2"), PU_CACHE));
 }
 
 
-void
-M_StartMessage
-( char*     string,
-  void*     routine,
-  boolean   input )
+void M_StartMessage( char* string, void* routine, boolean input )
 {
     messageLastMenuActive = menuactive;
     messageToPrint = 1;
@@ -1299,7 +1270,6 @@ M_StartMessage
     menuactive = true;
     return;
 }
-
 
 void M_StopMessage(void)
 {

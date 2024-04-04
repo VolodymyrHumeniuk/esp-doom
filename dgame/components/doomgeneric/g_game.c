@@ -936,7 +936,7 @@ void G_Ticker(void)
                 if (players[i].mo) 
                     consistancy[i][buf] = players[i].mo->x; 
                 else 
-                    consistancy[i][buf] = rndindex; 
+                    consistancy[i][buf] = M_GetRndIndex(); 
             } 
         }
     }
@@ -1782,7 +1782,7 @@ G_InitNew
      && ( gamemode != commercial) )
       map = 9;
 
-    M_ClearRandom ();
+    M_ClearRandom();
 
     if (skill == sk_nightmare || respawnparm )
     respawnmonsters = true;
