@@ -66,12 +66,65 @@ int DG_StartSound( int sfxId, int channel, int vol, int sep )
     return g_pSndFx->start( sfxId, channel, vol, sep );
 }
 
+int DG_IsSoundPlaying( int channel )
+{
+    return g_pSndFx->is_channelActive( channel );
+}
+
+void DG_UpdateSoundParams( int channel, int vol, int sep )
+{
+    return g_pSndFx->update( channel, vol, sep );
+}
+
 void DG_StopSound( int channel )
 {
     g_pSndFx->stop( channel );
 }
+
+// music
+void* DG_RegisterSong( const char* fileName )
+{
+    return g_pSndFx->registerSong( fileName );
 }
 
+void DG_UnRegisterSong( void* handle )
+{
+    g_pSndFx->unRegisterSong( handle );
+}
+
+void DG_PlaySong( void* handle, int loop )
+{
+    g_pSndFx->playSong( handle, (bool)loop );
+}
+
+void DG_StopSong()
+{
+    g_pSndFx->stopSong();
+}
+
+void DG_PauseSong()
+{
+    g_pSndFx->pauseSong();
+}
+
+void DG_ResumeSong()
+{
+    g_pSndFx->resumeSong();
+}
+
+void DG_SetMusicVolume( int vol )
+{
+    g_pSndFx->setMusicVolume( vol );
+}
+
+int DG_IsMusicPlaying()
+{
+    return g_pSndFx->isMusicPlaying();
+}
+
+}
+
+// DOOM engine task
 void doom_task( void* pArg )
 {
     uint32_t tickStart, elapsed;
@@ -81,7 +134,7 @@ void doom_task( void* pArg )
         LCD_D0, LCD_D1, LCD_D2, LCD_D3, LCD_D4, LCD_D5, LCD_D6, LCD_D7,
         LCD_RST );
 
-    g_pTFT->clearFrameBuffer( RED );
+    g_pTFT->clearFrameBuffer( BLACK );
     g_pTFT->flip();
     g_pTFT->rotate( 1 );
     g_pTFT->clearFrameBuffer( BLACK );
@@ -125,5 +178,5 @@ extern "C" void app_main(void)
     
     DG_SleepMs( 100 );
 
-    xTaskCreate( &doom_task, "doom", 18*1024, nullptr, 2, nullptr );
+    xTaskCreate( &doom_task, "doom", 18*1024, nullptr, 3, nullptr );
 }

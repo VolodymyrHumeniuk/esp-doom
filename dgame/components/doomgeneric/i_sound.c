@@ -109,7 +109,7 @@ static void CheckVolumeSeparation( int *vol, int *sep )
 void I_UpdateSoundParams( int channel, int vol, int sep )
 {
     CheckVolumeSeparation( &vol, &sep );
-    //sound_module->UpdateSoundParams(channel, vol, sep);
+    DG_UpdateSoundParams(channel, vol, sep);
 }
 
 int I_StartSound( sfxinfo_t *sfxinfo, int channel, int vol, int sep )
@@ -120,11 +120,12 @@ int I_StartSound( sfxinfo_t *sfxinfo, int channel, int vol, int sep )
 
 void I_StopSound( int channel )
 {
+    DG_StopSound( channel );
 }
 
 boolean I_SoundIsPlaying( int channel )
 {
-    return false;
+    return DG_IsSoundPlaying( channel );
 }
 
 void I_PrecacheSounds(sfxinfo_t *sounds, int num_sounds)
@@ -162,36 +163,42 @@ void I_ShutdownMusic(void)
 
 void I_SetMusicVolume(int volume)
 {
+    DG_SetMusicVolume( volume );
 }
 
 void I_PauseSong(void)
 {
+    DG_PauseSong();
 }
 
 void I_ResumeSong(void)
 {
+    DG_ResumeSong();
 }
 
-void* I_RegisterSong(void *data, int len)
+void* I_RegisterSong( const char* fileName, void *data, int len)
 {
-    return NULL;
+    return DG_RegisterSong( fileName );
 }
 
 void I_UnRegisterSong(void *handle)
 {
+    DG_UnRegisterSong( handle );
 }
 
-void I_PlaySong(void *handle, boolean looping)
+void I_PlaySong( void *handle, boolean looping )
 {
+    DG_PlaySong( handle, looping );
 }
 
 void I_StopSong(void)
 {
+    DG_StopSong();
 }
 
 boolean I_MusicIsPlaying(void)
 {
-    return false;
+    return (boolean)DG_IsMusicPlaying();
 }
 
 void I_BindSoundVariables(void)

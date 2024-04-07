@@ -214,7 +214,6 @@ void S_Start(void)
         int spmus[]=
         {
             // Song - Who? - Where?
-
             mus_e3m4,        // American     e4m1
             mus_e3m2,        // Romero       e4m2
             mus_e3m3,        // Shawn        e4m3
@@ -257,7 +256,6 @@ void S_StopSound(mobj_t *origin)
 // S_GetChannel :
 //   If none available, return -1.  Otherwise channel #.
 //
-
 static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 {
     // channel number to use
@@ -318,9 +316,7 @@ static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 // If the sound is not audible, returns a 0.
 // Otherwise, modifies parameters and returns 1.
 //
-
-static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
-                               int *vol, int *sep)
+static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source, int *vol, int *sep)
 {
     fixed_t        approx_dist;
     fixed_t        adx;
@@ -341,10 +337,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     }
     
     // angle of source to listener
-    angle = R_PointToAngle2(listener->x,
-                            listener->y,
-                            source->x,
-                            source->y);
+    angle = R_PointToAngle2( listener->x, listener->y, source->x, source->y );
 
     if (angle > listener->angle)
     {
@@ -372,16 +365,12 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
             approx_dist = S_CLIPPING_DIST;
         }
 
-        *vol = 15+ ((snd_SfxVolume-15)
-                    *((S_CLIPPING_DIST - approx_dist)>>FRACBITS))
-            / S_ATTENUATOR;
+        *vol = 15+ ((snd_SfxVolume-15) * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS)) / S_ATTENUATOR;
     }
     else
     {
         // distance effect
-        *vol = (snd_SfxVolume
-                * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS))
-            / S_ATTENUATOR; 
+        *vol = (snd_SfxVolume * ((S_CLIPPING_DIST - approx_dist)>>FRACBITS)) / S_ATTENUATOR; 
     }
     
     return (*vol > 0);
@@ -423,18 +412,12 @@ void S_StartSound(void *origin_p, int sfx_id)
         }
     }
 
-
-    // Check to see if it is audible,
-    //  and if not, modify the params
+    // Check to see if it is audible, and if not, modify the params
     if (origin && origin != players[consoleplayer].mo)
     {
-        rc = S_AdjustSoundParams(players[consoleplayer].mo,
-                                 origin,
-                                 &volume,
-                                 &sep);
+        rc = S_AdjustSoundParams(players[consoleplayer].mo, origin, &volume, &sep);
 
-        if (origin->x == players[consoleplayer].mo->x
-         && origin->y == players[consoleplayer].mo->y)
+        if(origin->x == players[consoleplayer].mo->x && origin->y == players[consoleplayer].mo->y)
         {        
             sep = NORM_SEP;
         }
@@ -477,7 +460,6 @@ void S_StartSound(void *origin_p, int sfx_id)
 //
 // Stop and resume music, during game PAUSE.
 //
-
 void S_PauseSound(void)
 {
     if (mus_playing && !mus_paused)
@@ -499,7 +481,6 @@ void S_ResumeSound(void)
 //
 // Updates music & sounds
 //
-
 void S_UpdateSounds(mobj_t *listener)
 {
     int                audible;
@@ -540,12 +521,9 @@ void S_UpdateSounds(mobj_t *listener)
 
                 // check non-local sounds for distance clipping
                 //  or modify their params
-                if (c->origin && listener != c->origin)
+                if( c->origin && listener != c->origin )
                 {
-                    audible = S_AdjustSoundParams(listener,
-                                                  c->origin,
-                                                  &volume,
-                                                  &sep);
+                    audible = S_AdjustSoundParams( listener, c->origin, &volume, &sep );
                     
                     if (!audible)
                     {
@@ -559,8 +537,7 @@ void S_UpdateSounds(mobj_t *listener)
             }
             else
             {
-                // if channel is allocated but sound has stopped,
-                //  free it
+                // if channel is allocated but sound has stopped, free it
                 S_StopChannel(cnum);
             }
         }
@@ -569,10 +546,9 @@ void S_UpdateSounds(mobj_t *listener)
 
 void S_SetMusicVolume(int volume)
 {
-    if (volume < 0 || volume > 127)
+    if( volume < 0 || volume > 127 )
     {
-        I_Error("Attempt to set music volume at %d",
-                volume);
+        I_Error( "Attempt to set music volume at %d", volume );
     }    
 
     I_SetMusicVolume(volume);
@@ -580,7 +556,7 @@ void S_SetMusicVolume(int volume)
 
 void S_SetSfxVolume(int volume)
 {
-    if (volume < 0 || volume > 127)
+    if( volume < 0 || volume > 127 )
     {
         I_Error("Attempt to set sfx volume at %d", volume);
     }
@@ -591,7 +567,6 @@ void S_SetSfxVolume(int volume)
 //
 // Starts some music with the music id found in sounds.h.
 //
-
 void S_StartMusic(int m_id)
 {
     S_ChangeMusic(m_id, false);
@@ -605,8 +580,7 @@ void S_ChangeMusic(int musicnum, int looping)
 
     // The Doom IWAD file has two versions of the intro music: d_intro
     // and d_introa.  The latter is used for OPL playback.
-
-    if (musicnum == mus_intro )
+    if( musicnum == mus_intro )
     {
         musicnum = mus_introa;
     }
@@ -628,18 +602,19 @@ void S_ChangeMusic(int musicnum, int looping)
     // shutdown old music
     S_StopMusic();
 
+    // VH: do not cache music, as it is located on SD card
     // get lumpnum if neccessary
-    if (!music->lumpnum)
-    {
-        M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
-        music->lumpnum = W_GetNumForName(namebuf);
-    }
+    //if (!music->lumpnum)
+    //{
+    //    M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
+    //    music->lumpnum = W_GetNumForName(namebuf);
+    //}
 
-    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    //music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
 
-    handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
+    handle = I_RegisterSong( music->name, NULL, NULL );
     music->handle = handle;
-    I_PlaySong(handle, looping);
+    I_PlaySong( handle, looping );
 
     mus_playing = music;
 }
@@ -651,18 +626,13 @@ boolean S_MusicPlaying(void)
 
 void S_StopMusic(void)
 {
-    if (mus_playing)
+    if( mus_playing )
     {
-        if (mus_paused)
-        {
-            I_ResumeSong();
-        }
-
         I_StopSong();
-        I_UnRegisterSong(mus_playing->handle);
-        W_ReleaseLumpNum(mus_playing->lumpnum);
-        mus_playing->data = NULL;
-        mus_playing = NULL;
+        I_UnRegisterSong( mus_playing->handle );
+        //W_ReleaseLumpNum( mus_playing->lumpnum );
+        //mus_playing->data = NULL;
+        //mus_playing = NULL;
     }
 }
 

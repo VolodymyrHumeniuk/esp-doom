@@ -16,6 +16,7 @@
 #include <sdmmc_cmd.h>
 #include <driver/sdmmc_host.h>
 #include <dirent.h>
+#include <math.h>
 #include "driver/i2s_std.h"
 #include "hid_kbd_host.h"
 #include "sdkconfig.h"

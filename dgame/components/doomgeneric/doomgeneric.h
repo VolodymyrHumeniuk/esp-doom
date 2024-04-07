@@ -29,9 +29,20 @@ int DG_GetKey(int* pressed, unsigned char* key);
 void DG_SetWindowTitle(const char * title);
 
 // interface to sound fx
-void DG_CacheSoundFx( int fxId, void* data, int len );
-int DG_StartSound( int sfxId, int channel, int vol, int sep );
-void DG_StopSound( int channel );
+void  DG_CacheSoundFx( int fxId, void* data, int len );
+int   DG_StartSound( int sfxId, int channel, int vol, int sep );
+void  DG_StopSound( int channel );
+void  DG_UpdateSoundParams( int channel, int vol, int sep );
+int   DG_IsSoundPlaying( int channel );
+
+void* DG_RegisterSong( const char* fileName );
+void  DG_UnRegisterSong( void* handle );
+void  DG_PlaySong( void* handle, int loop );
+void  DG_StopSong();
+void  DG_PauseSong();
+void  DG_ResumeSong();
+void  DG_SetMusicVolume( int vol );
+int   DG_IsMusicPlaying();
 
 #ifdef __cplusplus
 } // extern "C" {

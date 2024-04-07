@@ -193,7 +193,7 @@ void I_ShutdownMusic(void);
 void I_SetMusicVolume(int volume);
 void I_PauseSong(void);
 void I_ResumeSong(void);
-void* I_RegisterSong(void *data, int len);
+void* I_RegisterSong( const char* fileName, void *data, int len );
 void I_UnRegisterSong(void *handle);
 void I_PlaySong(void *handle, boolean looping);
 void I_StopSong(void);
