@@ -17,10 +17,8 @@
 //  Sliders and icons. Kinda widget stuff.
 //
 
-
 #include <stdlib.h>
 #include <ctype.h>
-
 
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -1130,21 +1128,19 @@ void M_QuitResponse(int key)
 }
 
 
-static char *M_SelectEndMessage(void)
+static const char* M_SelectEndMessage(void)
 {
-    char **endmsg;
+    const char **endmsg;
 
-    if (logical_gamemission == doom)
+    if( logical_gamemission == doom )
     {
         // Doom 1
-
-        endmsg = doom1_endmsg;
+        endmsg = get_doom1_endmsg();
     }
     else
     {
         // Doom 2
-        
-        endmsg = doom2_endmsg;
+        endmsg = get_doom2_endmsg();
     }
 
     return endmsg[gametic % NUM_QUITMESSAGES];
@@ -1153,8 +1149,7 @@ static char *M_SelectEndMessage(void)
 
 void M_QuitDOOM(int choice)
 {
-    DEH_snprintf(endstring, sizeof(endstring), "%s\n\n" DOSY,
-                 DEH_String(M_SelectEndMessage()));
+    DEH_snprintf(endstring, sizeof(endstring), "%s\n\n" DOSY, DEH_String(M_SelectEndMessage()));
 
     M_StartMessage(endstring,M_QuitResponse,true);
 }
@@ -1163,14 +1158,14 @@ void M_ChangeSensitivity(int choice)
 {
     switch(choice)
     {
-      case 0:
-    if (mouseSensitivity)
-        mouseSensitivity--;
-    break;
-      case 1:
-    if (mouseSensitivity < 9)
-        mouseSensitivity++;
-    break;
+    case 0:
+        if (mouseSensitivity)
+            mouseSensitivity--;
+        break;
+    case 1:
+        if (mouseSensitivity < 9)
+            mouseSensitivity++;
+        break;
     }
 }
 
@@ -1179,12 +1174,12 @@ void M_ChangeDetail(int choice)
     choice = 0;
     detailLevel = 1 - detailLevel;
 
-    R_SetViewSize (screenblocks, detailLevel);
+    R_SetViewSize(screenblocks, detailLevel);
 
     if (!detailLevel)
-    players[consoleplayer].message = DEH_String(DETAILHI);
+        players[consoleplayer].message = DEH_String(DETAILHI);
     else
-    players[consoleplayer].message = DEH_String(DETAILLO);
+        players[consoleplayer].message = DEH_String(DETAILLO);
 }
 
 void M_SizeDisplay(int choice)
@@ -1207,8 +1202,7 @@ void M_SizeDisplay(int choice)
     break;
     }
     
-
-    R_SetViewSize (screenblocks, detailLevel);
+    R_SetViewSize(screenblocks, detailLevel);
 }
 
 

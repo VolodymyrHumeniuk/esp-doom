@@ -21,7 +21,7 @@
 #define __D_ENGLSH__
 
 // I've truncated some messages for ESP32, mostly for end-game
-// ...they don't fit into meomry :(
+// ...they don't fit into memory :(
 
 //
 //  Printed strings for translation
