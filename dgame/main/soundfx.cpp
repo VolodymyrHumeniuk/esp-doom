@@ -3,7 +3,7 @@
 
 static lpcstr TAG = "SFX";
 
-SoundEffect::SoundEffect( uint8_t id, int8_t* data, uint32_t len )
+SoundEffect::SoundEffect( uint8_t id, uint8_t* data, uint32_t len )
 {
     fxId    = id;  // id from sfx table
     pcmData = data;
@@ -74,7 +74,7 @@ void SoundFXMixer::init()
 
 void SoundFXMixer::cache( int fxId, void* data, int len )
 {
-    m_effects[fxId] = SoundEffect( fxId, (int8_t*)data, (uint32_t)len );
+    m_effects[fxId] = SoundEffect( fxId, (uint8_t*)data, (uint32_t)len );
 }
 
 int SoundFXMixer::start( int sfxId, int channel, int vol, int sep )
@@ -173,7 +173,7 @@ void SoundFXMixer::mix() // mix active channels if any
         {
             if( m_channels[i].isActive() ) // mix sound from active channels
             {
-                float smp = m_channels[i].getSmaple() / 127.0f; // convert sample to float
+                float smp = (float)m_channels[i].getSmaple() / 32767.0f; //127.0f; // convert sample to float
 
                 float gainR = m_sepGainTable[ m_channels[i].getGainSep() ]; // get gain for right channel
                 float gainL = 1.0f - gainR;                                 // gain for left channel

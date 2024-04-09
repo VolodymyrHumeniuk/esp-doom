@@ -14,16 +14,16 @@
 class SoundEffect
 {
 public:
-    uint8_t  fxId;    // id from sfx table
-    int8_t*  pcmData; // pointer to pcm data, the data is stored by engine in zone allocator
-    uint32_t dataLen; // length of the data in samples, that in this case == to bytes
+    uint8_t   fxId;    // id from sfx table
+    uint8_t*  pcmData; // pointer to pcm data U8, the data is stored by engine in zone allocator
+    uint32_t  dataLen; // length of the data in samples, that in this case == to bytes
 
     SoundEffect() {
         fxId = 0;
         pcmData = nullptr;
         dataLen = 0;
     }
-    SoundEffect( uint8_t id, int8_t* data, uint32_t len );
+    SoundEffect( uint8_t id, uint8_t* data, uint32_t len );
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,13 +56,13 @@ public:
         return pEffect != nullptr;
     }
 
-    inline float getSmaple() {
-        int8_t smp = pEffect->pcmData[posIdx];
+    inline int16_t getSmaple() {
+        uint8_t smp = pEffect->pcmData[posIdx];
         if( ++posIdx >= pEffect->dataLen ) { // automatically stop channel
             pEffect = nullptr;
             posIdx  = 0;
         }
-        return (float)smp;
+        return ((int)smp << 8) - 32640; // convert to 16 bit signed
     }
 
     inline uint8_t getSfxID() const {
