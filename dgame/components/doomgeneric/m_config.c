@@ -98,7 +98,6 @@ float M_GetFloatVariable(char *name)
 
 // Get the path to the default configuration dir to use, if NULL
 // is passed to M_SetConfigDir.
-
 static char *GetDefaultConfigDir(void)
 {
     char *result = (char *)mem_alloc(2);
@@ -114,7 +113,6 @@ static char *GetDefaultConfigDir(void)
 // Sets the location of the configuration directory, where configuration
 // files are stored - default.cfg, chocolate-doom.cfg, savegames, etc.
 //
-
 void M_SetConfigDir(char *dir)
 {
 }
@@ -123,9 +121,16 @@ void M_SetConfigDir(char *dir)
 // Calculate the path to the directory to use to store save games.
 // Creates the directory as necessary.
 //
-
-char *M_GetSaveGameDir(char *iwadname)
+char* M_GetSaveGameDir(char *iwadname)
 {
-    return NULL;
+    const char* topdir = "/sd/savegame";
+
+    M_MakeDirectory( topdir );
+
+    char* savegamedir = M_StringJoin( topdir, DIR_SEPARATOR_S, iwadname, DIR_SEPARATOR_S, NULL );
+
+    M_MakeDirectory( savegamedir );
+
+    return savegamedir;
 }
 

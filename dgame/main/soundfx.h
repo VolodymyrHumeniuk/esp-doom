@@ -125,8 +125,8 @@ class SoundFXMixer
     }
 
     void play_fx(); // task to play sound effects
-
-    void mix(); // mix active channels if any
+    
+    void mix(); // mix active channels if any and music
 
     inline int16_t softClip( int smp ) {
         int s = smp < 0 ? -smp : smp;

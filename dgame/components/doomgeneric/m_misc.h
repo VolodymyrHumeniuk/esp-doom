@@ -27,7 +27,7 @@
 
 boolean M_WriteFile(char *name, void *source, int length);
 int M_ReadFile(char *name, byte **buffer);
-void M_MakeDirectory(char *dir);
+void M_MakeDirectory( const char* dir );
 char *M_TempFile(char *s);
 boolean M_FileExists(char *file);
 long M_FileLength(FILE *handle);
@@ -45,7 +45,6 @@ boolean M_StringStartsWith(const char *s, const char *prefix);
 boolean M_StringEndsWith(const char *s, const char *suffix);
 int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args);
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...);
-char *M_OEMToUTF8(const char *ansi);
 
 #endif
 

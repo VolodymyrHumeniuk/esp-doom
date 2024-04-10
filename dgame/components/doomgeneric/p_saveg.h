@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Savegame I/O, archiving, persistence.
+//  Savegame I/O, archiving, persistence.
 //
 
 
@@ -28,11 +28,11 @@
 
 // temporary filename to use while saving.
 
-char *P_TempSaveGameFile(void);
+char* P_TempSaveGameFile(void);
 
 // filename to use for a savegame slot
 
-char *P_SaveGameFile(int slot);
+char* P_SaveGameFile(int slot);
 
 // Savegame file header read/write functions
 

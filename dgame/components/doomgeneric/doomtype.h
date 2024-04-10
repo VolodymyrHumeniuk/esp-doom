@@ -13,8 +13,8 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	Simple basic typedefs, isolated here to make it easier
-//	 separating modules.
+//  Simple basic typedefs, isolated here to make it easier
+//   separating modules.
 //    
 
 
@@ -72,9 +72,9 @@ typedef bool boolean;
 
 typedef enum 
 {
-    false	= 0,
-    true	= 1,
-	undef	= 0xFFFFFFFF
+    false   = 0,
+    true    = 1,
+    undef   = 0xFFFFFFFF
 } boolean;
 
 #endif
@@ -83,19 +83,9 @@ typedef uint8_t byte;
 
 #include <limits.h>
 
-#ifdef _WIN32
-
-#define DIR_SEPARATOR '\\'
-#define DIR_SEPARATOR_S "\\"
-#define PATH_SEPARATOR ';'
-
-#else
-
 #define DIR_SEPARATOR '/'
 #define DIR_SEPARATOR_S "/"
 #define PATH_SEPARATOR ':'
-
-#endif
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
 

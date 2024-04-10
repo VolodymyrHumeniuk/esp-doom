@@ -29,10 +29,10 @@ void M_SetConfigDir(char *dir);
 void M_BindVariable(char *name, void *variable);
 boolean M_SetVariable(char *name, char *value);
 int M_GetIntVariable(char *name);
-const char *M_GetStrVariable(char *name);
+const char* M_GetStrVariable(char *name);
 float M_GetFloatVariable(char *name);
 void M_SetConfigFilenames(char *main_config, char *extra_config);
-char *M_GetSaveGameDir(char *iwadname);
+char* M_GetSaveGameDir(char *iwadname);
 
 extern char *configdir;
 

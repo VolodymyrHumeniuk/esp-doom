@@ -161,7 +161,7 @@ void SoundFXMixer::mix() // mix active channels if any
     {
         float musSmp = (float)m_inputBuf[j] / 32767.0f;
 
-        musSmp *= m_musicGain;  //0.45f; // gain correction, this should probaly be linked to music volume variable
+        musSmp *= m_musicGain;  // gain correction, this should probaly be linked to music volume variable
 
         float sL = musSmp - 0.0012345f; // make small diff in left
         float sR = musSmp + 0.0012345f; // and in right :)
@@ -173,7 +173,7 @@ void SoundFXMixer::mix() // mix active channels if any
         {
             if( m_channels[i].isActive() ) // mix sound from active channels
             {
-                float smp = (float)m_channels[i].getSmaple() / 32767.0f; //127.0f; // convert sample to float
+                float smp = (float)m_channels[i].getSmaple() / 32767.0f; // convert sample to float
 
                 float gainR = m_sepGainTable[ m_channels[i].getGainSep() ]; // get gain for right channel
                 float gainL = 1.0f - gainR;                                 // gain for left channel
